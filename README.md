@@ -17,8 +17,8 @@ Clock
    ▼
 World
    ├── Terrain
-   ├── Medium
-   └── Drones
+   ├── Drones
+   └── Medium
    │
    ▼
 Stations
