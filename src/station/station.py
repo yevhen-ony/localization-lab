@@ -1,22 +1,23 @@
 from common.heartbeat import Heartbeat
-from common.ids import StationId
-from common.observation import Observation, ObservationBatch
+from common.ids import ReceiverId
+from common.observation import Observation
+from common.station_report import StationReport
 from common.position import Position
 from common.signal import Signal
 from common.tick import Tick
 from transport.in_memory.channels import (
     HeartbeatChannel,
-    ObservationChannel,
+    StationReportChannel,
 )
 
 
 class Station:
     def __init__(
         self,
-        station_id: StationId,
+        station_id: ReceiverId,
         position: Position,
         heartbeat_channel: HeartbeatChannel,
-        observation_channel: ObservationChannel,
+        observation_channel: StationReportChannel,
     ) -> None:
         self._station_id = station_id
         self._position = position
@@ -34,7 +35,7 @@ class Station:
         )
 
     @property
-    def id(self) -> StationId:
+    def id(self) -> ReceiverId:
         return self._station_id
 
     @property
@@ -50,7 +51,7 @@ class Station:
         if not observations:
             return
 
-        batch = ObservationBatch(
+        batch = StationReport(
             epoch=self._epoch,
             station_id=self.id,
             station_position=self.position,

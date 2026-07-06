@@ -1,6 +1,6 @@
 import time
 from common.position import Position
-from common.ids import EmitterId, StationId
+from common.ids import EmitterId, ReceiverId
 from station.station import Station
 from ground.ground import Ground
 from clock.clock import Clock
@@ -12,7 +12,7 @@ from transport.in_memory.channels import (
     TickChannel,
     SignalChannel,
     HeartbeatChannel,
-    ObservationChannel,
+    StationReportChannel,
 )
 
 
@@ -20,7 +20,7 @@ def main():
     tick_channel = TickChannel()
     signal_channel = SignalChannel()
     heartbeat_channel = HeartbeatChannel()
-    observation_channel = ObservationChannel()
+    observation_channel = StationReportChannel()
 
     terrain = Terrain()
     medium = Medium()
@@ -40,20 +40,32 @@ def main():
 
     stations = [
         Station(
-            station_id=StationId("station-1"),
-            position=Position(3, 4),
+            station_id=ReceiverId("station-1"),
+            position=Position(30, 40),
             heartbeat_channel=heartbeat_channel,
             observation_channel=observation_channel,
         ),
         Station(
-            station_id=StationId("station-2"),
-            position=Position(-4, 2),
+            station_id=ReceiverId("station-2"),
+            position=Position(-20, 50),
+            heartbeat_channel=heartbeat_channel,
+            observation_channel=observation_channel,
+        ),
+        Station(
+            station_id=ReceiverId("station-3"),
+            position=Position(-30, -20),
+            heartbeat_channel=heartbeat_channel,
+            observation_channel=observation_channel,
+        ),
+        Station(
+            station_id=ReceiverId("station-4"),
+            position=Position(0, 60),
             heartbeat_channel=heartbeat_channel,
             observation_channel=observation_channel,
         ),
     ]
     clock = Clock(tick_channel=tick_channel)
-    ground = Ground()
+    ground = Ground(len(stations))
 
     tick_channel.subscribe(world.on_tick)
     heartbeat_channel.subscribe(world.on_heartbeat)
@@ -62,7 +74,7 @@ def main():
         tick_channel.subscribe(station.on_tick)
         signal_channel.subscribe(station.on_signal)
 
-    observation_channel.subscribe(ground.on_observation)
+    observation_channel.subscribe(ground.on_station_report)
 
     for i in range(100):
         print(f"epoch {i}")

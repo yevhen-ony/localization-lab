@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .ids import EmitterId, StationId
+from .ids import EmitterId, ReceiverId
 from .telemetry import Telemetry
 from .arrival_time import ArrivalTime
 
@@ -9,6 +9,6 @@ from .arrival_time import ArrivalTime
 class Signal:
     slot: int
     emitter_id: EmitterId
-    receiver_id: StationId
+    receiver_id: ReceiverId
     arrival_time: ArrivalTime
     telemetry: Telemetry

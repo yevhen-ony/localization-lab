@@ -2,23 +2,23 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from common.observation import ObservationBatch
+from common.station_report import StationReport
 from common.heartbeat import Heartbeat
 from common.signal import Signal
 from common.tick import Tick
 
 
-ObservationHandler = Callable[[ObservationBatch], None]
+StationReportHandler = Callable[[StationReport], None]
 
 
-class ObservationChannel:
+class StationReportChannel:
     def __init__(self) -> None:
-        self._handlers: list[ObservationHandler] = []
+        self._handlers: list[StationReportHandler] = []
 
-    def subscribe(self, handler: ObservationHandler) -> None:
+    def subscribe(self, handler: StationReportHandler) -> None:
         self._handlers.append(handler)
 
-    def publish(self, batch: ObservationBatch) -> None:
+    def publish(self, batch: StationReport) -> None:
         for handler in self._handlers:
             handler(batch)
 

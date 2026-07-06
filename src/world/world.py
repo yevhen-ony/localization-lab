@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from common.ids import StationId
+from common.ids import ReceiverId
 from common.heartbeat import Heartbeat
 from common.tick import Tick
 from common.telemetry import Telemetry
@@ -25,7 +25,7 @@ class World:
         self._terrain = terrain
         self._medium = medium 
         self._signal_channel = signal_channel
-        self._stations: dict[StationId, Heartbeat] = {}
+        self._stations: dict[ReceiverId, Heartbeat] = {}
 
     def on_heartbeat(self, heartbeat: Heartbeat) -> None:
         self._stations[heartbeat.station_id] = heartbeat

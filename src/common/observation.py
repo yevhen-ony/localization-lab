@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .arrival_time import ArrivalTime
-from .ids import EmitterId, StationId
+from .ids import EmitterId, ReceiverId
 from .position import Position
 from .telemetry import Telemetry
 from .signal import Signal
@@ -22,11 +22,3 @@ class Observation:
             arrival_time=signal.arrival_time,
             telemetry=signal.telemetry,
         )
-
-
-@dataclass(frozen=True, slots=True)
-class ObservationBatch:
-    epoch: int
-    station_id: StationId
-    station_position: Position
-    observations: list[Observation]

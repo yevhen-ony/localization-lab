@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import NewType
 
 
-StationId = NewType("StationId", str)
+ReceiverId = NewType("ReceiverId", str)
 EmitterId = NewType("EmitterId", str)
 
 
