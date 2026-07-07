@@ -6,6 +6,7 @@ from common.station_report import StationReport
 from common.heartbeat import Heartbeat
 from common.signal import Signal
 from common.tick import Tick
+from common.localized_sample import LocalizedSample
 
 
 StationReportHandler = Callable[[StationReport], None]
@@ -66,3 +67,18 @@ class TickChannel:
     def publish(self, report: Tick) -> None:
         for handler in self._handlers:
             handler(report)
+
+
+LocalizedSampleHandler = Callable[[LocalizedSample], None]
+
+
+class LocalizedSampleChannel:
+    def __init__(self) -> None:
+        self._handlers: list[LocalizedSampleHandler] = []
+
+    def subscribe(self, handler: LocalizedSampleHandler) -> None:
+        self._handlers.append(handler)
+
+    def publish(self, sample: LocalizedSample) -> None:
+        for handler in self._handlers:
+            handler(sample)

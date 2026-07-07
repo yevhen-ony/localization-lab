@@ -3,8 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .arrival_time import ArrivalTime
-from .ids import EmitterId, ReceiverId
-from .position import Position
+from .ids import EmitterId
 from .telemetry import Telemetry
 from .signal import Signal
 

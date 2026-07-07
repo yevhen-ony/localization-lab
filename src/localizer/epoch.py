@@ -3,6 +3,7 @@ from collections import defaultdict
 
 from common.ids import EmitterId, ReceiverId
 from common.station_report import StationReport
+from common.telemetry import Telemetry
 
 from .models import EmitterPing, ReceiverHit
 
@@ -23,21 +24,24 @@ class EpochBucket:
     def pings(self) -> tuple[EmitterPing, ...]:
 
         hits: defaultdict[EmitterId, list[ReceiverHit]] = defaultdict(list)
+        tele: dict[EmitterId, Telemetry] = {}
 
         for report in self.reports.values():
-            for observation in report.observations:
+            for obs in report.observations:
                 hit = ReceiverHit(
                     id=report.station_id,
                     pos=report.station_position,
-                    time_ns=observation.arrival_time.ns,
+                    time_ns=obs.arrival_time.ns,
                 )
-                hits[observation.emitter_id].append(hit)
+                hits[obs.emitter_id].append(hit)
+                tele.setdefault(obs.emitter_id, obs.telemetry)
 
         return tuple(
             EmitterPing(
                 epoch=self.epoch,
                 id=emitter_id,
                 hits=tuple(emitter_hits),
+                telemetry=tele[emitter_id],
             )
             for emitter_id, emitter_hits in hits.items()
         )

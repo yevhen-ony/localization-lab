@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 
-from .models import EmitterPing, EmitterFix
+from .models import ReceiverHits, PositionEstimate 
 from common.position import Position
 
 
@@ -12,33 +12,29 @@ Vector = npt.NDArray[np.float64]
 class TdoaSolver:
     propagation_speed: float = 0.3  # m/ns
 
-    def solve(self, ping: EmitterPing) -> EmitterFix | None:
-        if len(ping.hits) < 4:
+    def solve(self, hits: ReceiverHits) -> PositionEstimate | None:
+        if len(hits) < 4:
             return None
 
-        M, d = self._build_matrix(ping)
+        M, d = self._build_matrix(hits)
         u0, _, rank, _ = np.linalg.lstsq(M, d, rcond=None)
         if rank < 3:
             return None
         
         pos = Position(u0[0], u0[1])
-        err = self._estimate_error(ping, pos)
+        err = self._estimate_error(hits, pos)
 
-        return EmitterFix(
-            epoch=ping.epoch,
-            emitter_id=ping.id,
+        return PositionEstimate(
             position=pos,
             error=err,
         )
 
 
-    def _build_matrix(self, ping: EmitterPing) -> tuple[Matrix, Vector]:
+    def _build_matrix(self, hits: ReceiverHits) -> tuple[Matrix, Vector]:
         # M * u = d
         # u = [x0, y0, r1]
         # x0, y0 - emitter's coords
         # r1 - distance to the referenced receiver
-
-        hits = ping.hits
 
         M_rows = []
         d_vals = []
@@ -65,13 +61,13 @@ class TdoaSolver:
         return np.array(M_rows), np.array(d_vals)
 
     
-    def _estimate_error(self, ping: EmitterPing, pos: Position) -> float:
-        ref = ping.hits[0] 
+    def _estimate_error(self, hits: ReceiverHits, pos: Position) -> float:
+        ref = hits[0] 
         r1 = ref.pos.distance_to(pos)
 
         errors = []
 
-        for hit in ping.hits[1:]:
+        for hit in hits[1:]:
             predicted = hit.pos.distance_to(pos) - r1
             measured = self.propagation_speed * (hit.time_ns - ref.time_ns)
             errors.append(predicted - measured)

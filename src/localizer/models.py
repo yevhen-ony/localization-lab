@@ -1,5 +1,6 @@
 from common.ids import EmitterId, ReceiverId
 from common.position import Position
+from common.telemetry import Telemetry
 from dataclasses import dataclass
 
 
@@ -7,20 +8,21 @@ from dataclasses import dataclass
 class ReceiverHit:
     id: ReceiverId
     pos: Position
-    time_ns: int 
+    time_ns: int
+
+
+ReceiverHits = tuple[ReceiverHit, ...]
 
 
 @dataclass(frozen=True, slots=True)
 class EmitterPing:
     epoch: int
     id: EmitterId
-    hits: tuple[ReceiverHit, ...]
+    hits: ReceiverHits
+    telemetry: Telemetry
 
 
 @dataclass(frozen=True, slots=True)
-class EmitterFix:
-    epoch: int
-    emitter_id: EmitterId
+class PositionEstimate:
     position: Position
-    error: float 
-
+    error: float
