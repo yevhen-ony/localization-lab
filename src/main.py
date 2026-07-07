@@ -2,7 +2,7 @@ import time
 from common.position import Position
 from common.ids import EmitterId, ReceiverId
 from station.station import Station
-from ground.ground import Ground
+from localizer.ground import Localizer
 from clock.clock import Clock
 from world.terrain import Terrain
 from world.medium import Medium
@@ -31,8 +31,8 @@ def main():
     )
 
     drones = [
-        Drone(EmitterId("drone-1"), Position(-5, -1)),
-        Drone(EmitterId("drone-2"), Position(12, 12)),
+        Drone(EmitterId("drone-1"), Position(-50, -20)),
+        Drone(EmitterId("drone-2"), Position(30, 40)),
     ]
 
     for drone in drones:
@@ -41,7 +41,7 @@ def main():
     stations = [
         Station(
             station_id=ReceiverId("station-1"),
-            position=Position(30, 40),
+            position=Position(40, -40),
             heartbeat_channel=heartbeat_channel,
             observation_channel=observation_channel,
         ),
@@ -63,9 +63,15 @@ def main():
             heartbeat_channel=heartbeat_channel,
             observation_channel=observation_channel,
         ),
+        Station(
+            station_id=ReceiverId("station-5"),
+            position=Position(60, 0),
+            heartbeat_channel=heartbeat_channel,
+            observation_channel=observation_channel,
+        ),
     ]
     clock = Clock(tick_channel=tick_channel)
-    ground = Ground(len(stations))
+    ground = Localizer(len(stations))
 
     tick_channel.subscribe(world.on_tick)
     heartbeat_channel.subscribe(world.on_heartbeat)
