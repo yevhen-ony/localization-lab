@@ -2,7 +2,7 @@ import time
 from common.position import Position
 from common.ids import EmitterId, ReceiverId
 from station.station import Station
-from localizer.ground import Localizer
+from localizer.localizer import Localizer
 from clock.clock import Clock
 from world.terrain import Terrain
 from world.medium import Medium
