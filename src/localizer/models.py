@@ -24,5 +24,5 @@ class EmitterPing:
 
 @dataclass(frozen=True, slots=True)
 class PositionEstimate:
-    position: Position
-    error: float
+    pos: Position
+    std: float

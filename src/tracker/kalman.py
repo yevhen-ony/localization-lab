@@ -1,37 +1,12 @@
 from dataclasses import dataclass, field
-from common.position import Position
 import numpy as np
-from numpy.typing import NDArray
+import common.constants as const
 
-
-Vector = NDArray[np.float64]
-Matrix = NDArray[np.float64]
-
-
-@dataclass(frozen=True, slots=True)
-class LocationSample:
-    pos: Position
-    std: float
-    time: int
-
-    @property
-    def z(self):
-        """Measurement vector."""
-        return np.array([self.pos.x, self.pos.y])
-
-    @property
-    def R(self):
-        """Measurement covariance matrix."""
-        return np.eye(2) * self.std**2
-
-
-@dataclass(frozen=True, slots=True)
-class TrackState:
-    """TrackState is a state of the 2D constante velocity model"""
-
-    x: Vector  # state vector [p_x, p_y, v_x, v_y] (4, 1)
-    P: Matrix  # state covariance matrix (4 x 4)
-    t: int
+from .state import (
+    TrackState,
+    LocationEstimate,
+    Matrix,
+)
 
 
 @dataclass
@@ -87,8 +62,8 @@ class ConstantVelocity2D:
         )
 
     def time(self, t: int) -> float:
-        """ Converts the descret timestamp in the time interval"""
-        return t * self.time_scale
+        """Converts the descret timestamp in the time interval"""
+        return t * const.epoch_duration_s
 
 
 class KalmanFilter:
@@ -99,7 +74,7 @@ class KalmanFilter:
     def predict(self, track: TrackState, t: int) -> TrackState:
         """Predict the next track state using the motion model."""
 
-        tt = t - track.t
+        tt = t - track.epoch
 
         if tt < 0:
             raise ValueError("cannot predict to a past timestamp")
@@ -114,21 +89,23 @@ class KalmanFilter:
 
         x = F @ track.x
         P = F @ track.P @ F.T + Q
-        return TrackState(x, P, t)
+        return track.update(x, P, t)
 
-    def update(self, track: TrackState, sample: LocationSample) -> TrackState:
+    def update(self, track: TrackState, loc: LocationEstimate) -> TrackState:
         """Update the track with a location measurement at the same timestamp."""
 
-        if track.t != sample.time:
+        if track.epoch != loc.epoch:
             raise ValueError("cannot update with out-of-sync sample")
 
         H = self.model.H
-        R = sample.R
+        R = loc.R
 
-        i = sample.z - H @ track.x
+        i = loc.z - H @ track.x
+
         S = H @ track.P @ H.T + R
-        K = track.P @ H.T @ np.linalg.inv(S)
+        A = track.P @ H.T
+        K = np.linalg.solve(S.T, A.T).T
 
         x = track.x + K @ i
         P = (self.I - K @ H) @ track.P
-        return TrackState(x, P, track.t)
+        return track.update(x, P, track.epoch)

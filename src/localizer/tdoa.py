@@ -1,8 +1,10 @@
 import numpy as np
 import numpy.typing as npt
 
-from .models import ReceiverHits, PositionEstimate 
+from .models import ReceiverHits, PositionEstimate
 from common.position import Position
+
+import common.constants as const
 
 
 Matrix = npt.NDArray[np.float64]
@@ -10,67 +12,66 @@ Vector = npt.NDArray[np.float64]
 
 
 class TdoaSolver:
-    propagation_speed: float = 0.3  # m/ns
-
     def solve(self, hits: ReceiverHits) -> PositionEstimate | None:
         if len(hits) < 4:
             return None
 
-        M, d = self._build_matrix(hits)
+        M, d = self._equation(hits)
         u0, _, rank, _ = np.linalg.lstsq(M, d, rcond=None)
         if rank < 3:
             return None
-        
+
         pos = Position(u0[0], u0[1])
         err = self._estimate_error(hits, pos)
 
         return PositionEstimate(
-            position=pos,
-            error=err,
+            pos=pos,
+            std=err,
         )
 
-
-    def _build_matrix(self, hits: ReceiverHits) -> tuple[Matrix, Vector]:
+    def _equation(self, hits: ReceiverHits) -> tuple[Matrix, Vector]:
         # M * u = d
-        # u = [x0, y0, r1]
-        # x0, y0 - emitter's coords
-        # r1 - distance to the referenced receiver
 
         M_rows = []
         d_vals = []
 
-        h1 = hits[0]
-        x1 = h1.pos.x
-        y1 = h1.pos.y
-        t1 = h1.time_ns
-
-        for h in hits[1:]:
-            x = h.pos.x
-            y = h.pos.y
-            t = h.time_ns
-            dr = self.propagation_speed * (t - t1)
-
-            M_rows.append(
-                [
-                    2 * (x - x1),
-                    2 * (y - y1),
-                    2 * dr,
-                ]
-            )
-            d_vals.append(x**2 + y**2 - x1**2 - y1**2 - dr**2)
-        return np.array(M_rows), np.array(d_vals)
-
-    
-    def _estimate_error(self, hits: ReceiverHits, pos: Position) -> float:
-        ref = hits[0] 
-        r1 = ref.pos.distance_to(pos)
-
-        errors = []
+        ref = hits[0]
+        x0, y0, t0 = ref.pos.x, ref.pos.y, ref.time_ns
 
         for hit in hits[1:]:
-            predicted = hit.pos.distance_to(pos) - r1
-            measured = self.propagation_speed * (hit.time_ns - ref.time_ns)
-            errors.append(predicted - measured)
+            x, y, t = hit.pos.x, hit.pos.y, hit.time_ns
 
-        return np.linalg.norm(errors) / np.sqrt(len(errors)) 
+            dr = const.propagation_speed * (t - t0)
+            M_rows.append([2 * (x - x0), 2 * (y - y0), 2 * dr])
+            d_vals.append(x**2 + y**2 - x0**2 - y0**2 - dr**2)
 
+        return np.array(M_rows), np.array(d_vals)
+
+    def _jacobian(self, hits: ReceiverHits, pos: Position) -> Matrix:
+        ref = hits[0]
+        r1 = ref.pos.distance_to(pos)
+
+
+        rows = []
+
+        for hit in hits[1:]:
+            r = hit.pos.distance_to(pos)
+
+            rows.append([
+                (pos.x - hit.pos.x) / r - (pos.x - ref.pos.x) / r1,
+                (pos.y - hit.pos.y) / r - (pos.y - ref.pos.y) / r1,
+            ])
+        return np.array(rows, dtype=float)
+    
+    def _covariance(self, size: int) -> Matrix:
+        return np.eye(size) + np.ones((size, size))
+
+
+    def _estimate_error(self, hits: ReceiverHits, pos: Position) -> float:
+        J = self._jacobian(hits, pos)
+        R = self._covariance(len(hits)-1)
+        P = np.linalg.inv(J.T @ np.linalg.solve(R, J))
+        
+        var = np.linalg.eigvalsh(P)[-1]
+        distance_std = const.propagation_speed * const.arrival_time_std 
+        return distance_std * np.sqrt(var)

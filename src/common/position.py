@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class Position:
-    """Cartesian position."""
+    """Cartesian position in meters."""
 
     x: float
     y: float
@@ -39,4 +39,30 @@ class Position:
         return Position(
             x=random.uniform(-scale, scale),
             y=random.uniform(-scale, scale),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Velocity:
+    """Cartesian velocity in meters per second"""
+    x: float
+    y: float
+    z: float = 0
+
+    def step(self, dt: float) -> Position:
+        return Position(self.x*dt, self.y*dt, self.z*dt)
+
+    
+    def __add__(self, other: Velocity) -> Velocity:
+        return Velocity(
+            self.x + other.x,
+            self.y + other.y,
+            self.z + other.z,
+        )
+
+    def __sub__(self, other: Velocity) -> Velocity:
+        return Velocity(
+            self.x - other.x,
+            self.y - other.y,
+            self.z - other.z,
         )

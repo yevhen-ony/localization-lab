@@ -4,6 +4,7 @@ from common.ids import EmitterId, ReceiverId
 from station.station import Station
 from localizer.localizer import Localizer
 from clock.clock import Clock
+from tracker.tracker import Tracker
 from world.terrain import Terrain
 from world.medium import Medium
 from world.world import World
@@ -14,8 +15,9 @@ from transport.in_memory.channels import (
     HeartbeatChannel,
     StationReportChannel,
     LocalizedSampleChannel,
+    TrackChannel,
 )
-from utils import Tracker 
+from utils import Printer 
 
 
 def main():
@@ -23,7 +25,8 @@ def main():
     signal_channel = SignalChannel()
     heartbeat_channel = HeartbeatChannel()
     report_channel = StationReportChannel()
-    sample_channel = LocalizedSampleChannel()
+    location_channel = LocalizedSampleChannel()
+    track_channel = TrackChannel()
 
     terrain = Terrain()
     medium = Medium()
@@ -78,12 +81,19 @@ def main():
             heartbeat_channel=heartbeat_channel,
             observation_channel=report_channel,
         ),
+        Station(
+            station_id=ReceiverId("station-7"),
+            position=Position(-30, 40),
+            heartbeat_channel=heartbeat_channel,
+            observation_channel=report_channel,
+        ),
     ]
     clock = Clock(tick_channel=tick_channel)
     localizer = Localizer(
         station_count=len(stations),
-        sample_channel=sample_channel,
+        sample_channel=location_channel,
     )
+    tracker = Tracker(track_channel)
 
     tick_channel.subscribe(world.on_tick)
     heartbeat_channel.subscribe(world.on_heartbeat)
@@ -93,7 +103,9 @@ def main():
         signal_channel.subscribe(station.on_signal)
 
     report_channel.subscribe(localizer.on_station_report)
-    sample_channel.subscribe(Tracker([drones[0].id]).print_sample)
+    location_channel.subscribe(tracker.on_location_update)
+    track_channel.subscribe(Printer([drones[0].id]).print_sample)
+
 
     for i in range(100):
         print(f"epoch {i}")

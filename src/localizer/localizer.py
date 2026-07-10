@@ -43,6 +43,6 @@ class Localizer:
             epoch=ping.epoch,
             emitter_id=ping.id,
             telemetry=ping.telemetry,
-            position=pe.position,
-            position_error=pe.error,
+            position=pe.pos,
+            position_std=pe.std,
         ))
