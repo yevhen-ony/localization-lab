@@ -6,7 +6,7 @@ from common.station_report import StationReport
 from common.heartbeat import Heartbeat
 from common.signal import Signal
 from common.tick import Tick
-from common.localized_sample import LocalizedSample, TrackSample
+from common.samples import LocalizedSample, TrackSample
 
 
 StationReportHandler = Callable[[StationReport], None]

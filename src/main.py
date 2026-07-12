@@ -5,6 +5,8 @@ from station.station import Station
 from localizer.localizer import Localizer
 from clock.clock import Clock
 from tracker.tracker import Tracker
+from storage.tracks.repository import MongoTrackRepo
+from storage.tracks.ingest import TrackIngestor
 from world.terrain import Terrain
 from world.medium import Medium
 from world.world import World
@@ -18,6 +20,7 @@ from transport.in_memory.channels import (
     TrackChannel,
 )
 from utils import Printer 
+from pymongo import MongoClient
 
 
 def main():
@@ -95,6 +98,14 @@ def main():
     )
     tracker = Tracker(track_channel)
 
+
+    mongo_client = MongoClient("mongodb://localhost:27017")
+    mongo_db = mongo_client["localization-lab"]
+    mongo_col = mongo_db["tracks"]
+
+    repo = MongoTrackRepo(mongo_col)
+    ingestor = TrackIngestor(repo)
+
     tick_channel.subscribe(world.on_tick)
     heartbeat_channel.subscribe(world.on_heartbeat)
 
@@ -104,7 +115,7 @@ def main():
 
     report_channel.subscribe(localizer.on_station_report)
     location_channel.subscribe(tracker.on_location_update)
-    track_channel.subscribe(Printer([drones[0].id]).print_sample)
+    track_channel.subscribe(ingestor.on_track_sample)
 
 
     for i in range(100):

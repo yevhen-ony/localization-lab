@@ -1,5 +1,5 @@
 from common.station_report import StationReport
-from common.localized_sample import LocalizedSample
+from common.samples import LocalizedSample
 from localizer.models import PositionEstimate
 from transport.in_memory.channels import LocalizedSampleChannel
 

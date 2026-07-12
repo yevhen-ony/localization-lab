@@ -1,6 +1,6 @@
 import common.constants as const
 from common.ids import EmitterId
-from common.localized_sample import LocalizedSample, TrackSample
+from common.samples import LocalizedSample, TrackSample
 from transport.in_memory.channels import TrackChannel
 from .state import TrackState, LocationEstimate
 from .kalman import (

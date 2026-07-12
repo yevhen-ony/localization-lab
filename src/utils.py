@@ -1,6 +1,6 @@
 import json
 from dataclasses import asdict
-from common.localized_sample import TrackSample
+from common.samples import TrackSample
 from common.ids import EmitterId
 
 class Printer:
