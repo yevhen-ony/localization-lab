@@ -1,6 +1,6 @@
 from common.samples import TrackSample
 
-from .repository import TrackRepo
+from repository.tracks import TrackRepo
 
 class TrackIngestor:
     def __init__(self, repo: TrackRepo):

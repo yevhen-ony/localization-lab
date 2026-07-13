@@ -4,6 +4,7 @@ from typing import Any, Protocol
 
 from pymongo import ReplaceOne
 from pymongo.collection import Collection
+from pymongo.database import Database
 
 from common.samples import TrackSample
 from common.position import Velocity, Position
@@ -11,9 +12,12 @@ from common.ids import EmitterId
 from common.telemetry import Telemetry
 
 
+TRACK_COLLECTION = "tracks"
+
 class TrackRepo(Protocol):
     def put(self, sample: TrackSample) -> None: ...
     def put_many(self, samples: Sequence[TrackSample]) -> None: ...
+    def last_epoch(self) -> int | None: ...
     def get_epoch(self, epoch: int) -> tuple[TrackSample, ...]: ...
     def get_track(
         self,
@@ -23,8 +27,8 @@ class TrackRepo(Protocol):
 
 
 class MongoTrackRepo:
-    def __init__(self, collection: Collection):
-        self._collection = collection
+    def __init__(self, mongo_db: Database):
+        self._collection: Collection = mongo_db[TRACK_COLLECTION] 
 
     def setup(self) -> None:
         self._collection.create_index([("emitter_id", 1), ("epoch", 1)], unique=True)
@@ -45,15 +49,24 @@ class MongoTrackRepo:
     ) -> tuple[TrackSample, ...]:
         query: dict[str, Any] = {"emitter_id": str(emitter_id)}
         if since_epoch is not None:
-            query["epoch"] = {"$gte": since_epoch}
+            query["epoch"] = {"$gt": since_epoch}
 
         docs = self._collection.find(query).sort("epoch", 1)
         return tuple(self._from_doc(doc) for doc in docs)
 
     def get_epoch(self, epoch: int) -> tuple[TrackSample, ...]:
         query = {"epoch": epoch}
-        docs = self._collection.find(query)
+        docs = self._collection.find(query).sort("emitter_id", 1)
         return tuple(self._from_doc(doc) for doc in docs)
+
+    def last_epoch(self) -> int | None:
+        doc = self._collection.find_one(
+            sort=[("epoch", -1)],
+            projection={"epoch": 1, "_id": 0},
+        )
+        if doc is None:
+            return None
+        return int(doc["epoch"])
 
     def _to_replace_op(self, sample: TrackSample) -> ReplaceOne:
         filter = {
