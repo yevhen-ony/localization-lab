@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from common.position import Position
-from common.arrival_time import ArrivalTime
+from common.entities import ArrivalTime
 
 
 @dataclass(frozen=True, slots=True)
@@ -11,7 +11,7 @@ class Propagation:
 
 @dataclass(frozen=True)
 class Medium:
-    action_range: float = 100.0
+    action_range: float = 200.0
     noise_level: float = 0.3
     propagation_speed: float = 0.3 # m/ns 
 
@@ -27,5 +27,5 @@ class Medium:
         arrival_time_ns = dist / self.propagation_speed
 
         return Propagation(  
-            arrival_time=ArrivalTime(ns=round(arrival_time_ns)),
+            arrival_time=ArrivalTime(ns=arrival_time_ns),
         )

@@ -1,11 +1,13 @@
-from common.heartbeat import Heartbeat
-from common.ids import ReceiverId
-from common.observation import Observation
-from common.station_report import StationReport
 from common.position import Position
-from common.signal import Signal
-from common.tick import Tick
-from transport.in_memory.channels import (
+from common.entities import (
+    Heartbeat,
+    ReceiverId,
+    Observation,
+    StationReport,
+    Signal,
+    Tick,
+)
+from transport.protocols import (
     HeartbeatChannel,
     StationReportChannel,
 )
@@ -17,13 +19,13 @@ class Station:
         station_id: ReceiverId,
         position: Position,
         heartbeat_channel: HeartbeatChannel,
-        observation_channel: StationReportChannel,
+        report_channel: StationReportChannel,
     ) -> None:
         self._station_id = station_id
         self._position = position
         self._epoch = 0
         self._heartbeat_channel = heartbeat_channel
-        self._observation_channel = observation_channel
+        self._observation_channel = report_channel
         self._slots: list[Signal | None] = []
 
     def emit_heartbeat(self) -> None:

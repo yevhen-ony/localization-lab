@@ -1,20 +1,19 @@
-from common.tick import Tick
-from transport.in_memory.channels import TickChannel
+from common.entities import Tick
+from transport.protocols import TickChannel
 
 
 class Clock:
     def __init__(self, tick_channel: TickChannel):
         self._tick_channel = tick_channel
         self._epoch = 0
-        self._span = 100 
-        self._slots = 30 
+        self._slots = 30
 
     def emit_tick(self) -> None:
         self._epoch += 1
 
         tick = Tick(
             epoch=self._epoch,
-            span=self._span,
-            slots=self._slots)
+            slots=self._slots,
+        )
 
         self._tick_channel.publish(tick)

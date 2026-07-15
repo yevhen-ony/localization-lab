@@ -1,14 +1,17 @@
-from common.ids import EmitterId, ReceiverId
-from common.position import Position
-from common.telemetry import Telemetry
 from dataclasses import dataclass
+from common.position import Position
+from common.entities import (
+    EmitterId,
+    ReceiverId,
+    Telemetry,
+)
 
 
 @dataclass(frozen=True, slots=True)
 class ReceiverHit:
     id: ReceiverId
     pos: Position
-    time_ns: int
+    time_ns: float
 
 
 ReceiverHits = tuple[ReceiverHit, ...]

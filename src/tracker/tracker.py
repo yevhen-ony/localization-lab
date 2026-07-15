@@ -1,7 +1,10 @@
 import common.constants as const
-from common.ids import EmitterId
-from common.samples import LocalizedSample, TrackSample
-from transport.in_memory.channels import TrackChannel
+from common.entities import (
+    EmitterId,
+    LocalizedSample,
+    TrackSample,
+)
+from transport.protocols import TrackChannel
 from .state import TrackState, LocationEstimate
 from .kalman import (
     KalmanFilter,
@@ -13,13 +16,14 @@ class Tracker:
     def __init__(self, track_channel: TrackChannel):
         model = ConstantVelocity2D(
             time_scale=const.epoch_duration_s,
-            kick_density=const.velocity_kick_density, 
+            kick_density=const.velocity_kick_density,
         )
         self._track_channel = track_channel
         self._filter = KalmanFilter(model)
         self._tracks: dict[EmitterId, TrackState] = {}
 
     def on_location_update(self, sample: LocalizedSample) -> None:
+        print(f"tracker: location update: epoch = {sample.epoch} sample = {sample.emitter_id}")
         loc = LocationEstimate(
             id=sample.emitter_id,
             pos=sample.position,
@@ -38,7 +42,7 @@ class Tracker:
             position_std=pos_err,
             velocity=vel,
             velocity_std=vel_err,
-            telemetry=sample.telemetry
+            telemetry=sample.telemetry,
         )
 
         self._track_channel.publish(track_sample)
@@ -53,4 +57,3 @@ class Tracker:
 
         self._tracks[track.id] = track
         return track
-

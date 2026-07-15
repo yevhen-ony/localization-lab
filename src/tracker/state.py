@@ -5,7 +5,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from common.position import Position, Velocity
-from common.ids import EmitterId
+from common.entities import EmitterId
 import common.constants as const
 
 Vector = NDArray[np.float64]

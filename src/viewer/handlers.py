@@ -4,7 +4,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from repository.tracks import TrackRepo
 from collections.abc import Awaitable, Callable
 from functools import wraps
-from common.ids import EmitterId
+from common.entities import EmitterId
 
 
 WebSocketHandler = Callable[..., Awaitable[None]]

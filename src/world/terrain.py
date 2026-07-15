@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import math
 
 from common.position import Position
-from common.telemetry import Telemetry
+from common.entities import Telemetry
 
 
 @dataclass

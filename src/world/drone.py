@@ -4,12 +4,16 @@ import random
 from typing import Protocol
 from dataclasses import dataclass
 
-from common.ids import EmitterId
-from common.position import Position
-from common.telemetry import Telemetry
-from common.tick import Tick
+from common.position import Position, Velocity
+import common.constants as const
+from common.entities import (
+        EmitterId,
+        Telemetry,
+        Tick,
+)
 
 from .navigation import Navigation
+
 
 @dataclass(frozen=True, slots=True)
 class Emission:
@@ -27,9 +31,11 @@ class Drone:
         self,
         drone_id: EmitterId,
         position: Position,
+        velocity: Velocity,
+        noise: float = 0,
     ):
         self._id = drone_id
-        self._navi = Navigation(position, Position.random(0.0))
+        self._navi = Navigation(position, velocity, noise)
         self._env: DroneEnvironment | None = None
 
     @property
@@ -46,20 +52,15 @@ class Drone:
         return self._navi.position
 
     def on_tick(self, tick: Tick) -> None:
-        self._navi.forward()
+        dt = const.epoch_duration_s
+        self._navi.advance(dt)
 
         telemetry = self.env.measure(self.position)
         emission = Emission(
             slot=random.randrange(0, tick.slots),
             telemetry=telemetry,
         )
-
-        success_count = self.env.transmit(self, emission)
-        self._react(success_count)
+        self.env.transmit(self, emission)
 
     def bind_environment(self, env: DroneEnvironment) -> None:
         self._env = env
-
-    def _react(self, success_count: int) -> None:
-        if success_count == 0:
-            self._navi.backward()

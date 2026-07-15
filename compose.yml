@@ -1,0 +1,98 @@
+services:
+  broker:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  mongodb:
+    image: mongo:8
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      - mongodb
+
+  viewer:
+    image: lab:latest
+    depends_on:
+      - mongodb
+    ports:
+      - "8080:8080"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
+    command: ["python", "-m", "viewer.main"]
+
+  clock:
+    image: lab:latest
+    depends_on:
+      - broker
+    environment:
+      MQTT_PORT: "1883"
+      MQTT_HOST: broker
+      MQTT_CLIENT_ID: clock
+    command: ["python", "-m", "clock.main"]
+
+  world:
+    image: lab:latest
+    depends_on:
+      - broker
+    environment:
+      MQTT_PORT: "1883"
+      MQTT_HOST: broker
+      MQTT_CLIENT_ID: world
+    command: ["python", "-m", "world.main"]
+
+  stations:
+    image: lab:latest
+    depends_on:
+      - broker
+    environment:
+      MQTT_PORT: "1883"
+      MQTT_HOST: broker
+      MQTT_CLIENT_ID: stations
+    command: ["python", "-m", "station.main"]
+
+  localizer:
+    image: lab:latest
+    depends_on:
+      - broker
+    environment:
+      MQTT_PORT: "1883"
+      MQTT_HOST: broker
+      MQTT_CLIENT_ID: localizer
+    command: ["python", "-m", "localizer.main"]
+
+  tracker:
+    image: lab:latest
+    depends_on:
+      - broker
+    environment:
+      MQTT_PORT: "1883"
+      MQTT_HOST: broker
+      MQTT_CLIENT_ID: tracker
+    command: ["python", "-m", "tracker.main"]
+
+  ingestor:
+    image: lab:latest
+    depends_on:
+      - broker
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
+      MQTT_PORT: "1883"
+      MQTT_HOST: broker
+      MQTT_CLIENT_ID: ingestor 
+    command: ["python", "-m", "ingestor.main"]
+
+volumes:
+  mongo_data:

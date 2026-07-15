@@ -1,9 +1,12 @@
 from dataclasses import dataclass, field
 from collections import defaultdict
 
-from common.ids import EmitterId, ReceiverId
-from common.station_report import StationReport
-from common.telemetry import Telemetry
+from common.entities import (
+    EmitterId,
+    ReceiverId,
+    StationReport,
+    Telemetry,
+)
 
 from .models import EmitterPing, ReceiverHit
 

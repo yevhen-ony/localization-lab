@@ -6,13 +6,16 @@ from pymongo import ReplaceOne
 from pymongo.collection import Collection
 from pymongo.database import Database
 
-from common.samples import TrackSample
 from common.position import Velocity, Position
-from common.ids import EmitterId
-from common.telemetry import Telemetry
+from common.entities import (
+    TrackSample,
+    EmitterId,
+    Telemetry,
+)
 
 
 TRACK_COLLECTION = "tracks"
+
 
 class TrackRepo(Protocol):
     def put(self, sample: TrackSample) -> None: ...
@@ -28,7 +31,7 @@ class TrackRepo(Protocol):
 
 class MongoTrackRepo:
     def __init__(self, mongo_db: Database):
-        self._collection: Collection = mongo_db[TRACK_COLLECTION] 
+        self._collection: Collection = mongo_db[TRACK_COLLECTION]
 
     def setup(self) -> None:
         self._collection.create_index([("emitter_id", 1), ("epoch", 1)], unique=True)

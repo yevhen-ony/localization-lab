@@ -4,7 +4,7 @@ from fastapi import Depends, FastAPI, WebSocket, Path
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from common.ids import EmitterId
+from common.entities import EmitterId
 from repository.tracks import TrackRepo
 
 from .handlers import stream_track

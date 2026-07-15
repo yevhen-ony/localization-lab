@@ -11,31 +11,27 @@ class Position:
 
     x: float
     y: float
-    z: float = 0.0
 
     def distance_to(self, other: Position) -> float:
         """Euclidean distance to another position."""
         dx = self.x - other.x
         dy = self.y - other.y
-        dz = self.z - other.z
-        return math.sqrt(dx * dx + dy * dy + dz * dz)
+        return math.sqrt(dx * dx + dy * dy)
 
     def __add__(self, other: Position) -> Position:
         return Position(
             self.x + other.x,
             self.y + other.y,
-            self.z + other.z,
         )
 
     def __sub__(self, other: Position) -> Position:
         return Position(
             self.x - other.x,
             self.y - other.y,
-            self.z - other.z,
         )
 
     @staticmethod
-    def random(scale: float) -> "Position":
+    def random(scale: float) -> Position:
         return Position(
             x=random.uniform(-scale, scale),
             y=random.uniform(-scale, scale),
@@ -47,22 +43,34 @@ class Velocity:
     """Cartesian velocity in meters per second"""
     x: float
     y: float
-    z: float = 0
 
     def step(self, dt: float) -> Position:
-        return Position(self.x*dt, self.y*dt, self.z*dt)
+        return Position(self.x*dt, self.y*dt)
 
     
     def __add__(self, other: Velocity) -> Velocity:
         return Velocity(
             self.x + other.x,
             self.y + other.y,
-            self.z + other.z,
         )
 
     def __sub__(self, other: Velocity) -> Velocity:
         return Velocity(
             self.x - other.x,
             self.y - other.y,
-            self.z - other.z,
+        )
+
+    def __mul__(self, factor: float) -> Velocity:
+          return Velocity(self.x * factor, self.y * factor)
+
+
+    def __rmul__(self, factor: float) -> Velocity:
+          return self * factor
+
+    
+    @staticmethod
+    def random(scale: float) -> Velocity:
+        return Velocity(
+            x=random.uniform(-scale, scale),
+            y=random.uniform(-scale, scale),
         )

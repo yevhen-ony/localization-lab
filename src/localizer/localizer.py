@@ -1,25 +1,25 @@
-from common.station_report import StationReport
-from common.samples import LocalizedSample
-from localizer.models import PositionEstimate
-from transport.in_memory.channels import LocalizedSampleChannel
+from transport.protocols import LocalizedSampleChannel
+from common.entities import (
+    StationReport,
+    LocalizedSample,
+)
 
 from .epoch import EpochBuffer
 from .tdoa import TdoaSolver
-from .models import EmitterPing
+from .models import EmitterPing, PositionEstimate
 
 
 class Localizer:
     def __init__(
         self,
-        station_count: int,
-        sample_channel: LocalizedSampleChannel, 
-     ):
-        self._station_count = station_count
+        sample_channel: LocalizedSampleChannel,
+    ):
         self._sample_channel = sample_channel
         self._epochs = EpochBuffer(depth=1)
         self._solver = TdoaSolver()
 
     def on_station_report(self, report: StationReport) -> None:
+        print(f"localizer: station report: report = {report.station_id}")
         if self._epochs.advance(report.epoch):
             self.on_epoch_advanced()
 
@@ -31,18 +31,19 @@ class Localizer:
             return
 
         for epoch in epochs:
-            for ping in epoch.pings(): 
+            for ping in epoch.pings():
                 pe = self._solver.solve(ping.hits)
                 if pe is None:
                     continue
                 self._emit_sample(ping, pe)
 
-
     def _emit_sample(self, ping: EmitterPing, pe: PositionEstimate) -> None:
-        self._sample_channel.publish(sample=LocalizedSample(
-            epoch=ping.epoch,
-            emitter_id=ping.id,
-            telemetry=ping.telemetry,
-            position=pe.pos,
-            position_std=pe.std,
-        ))
+        self._sample_channel.publish(
+            sample=LocalizedSample(
+                epoch=ping.epoch,
+                emitter_id=ping.id,
+                telemetry=ping.telemetry,
+                position=pe.pos,
+                position_std=pe.std,
+            )
+        )

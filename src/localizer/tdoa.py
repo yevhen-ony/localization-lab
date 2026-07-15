@@ -1,10 +1,10 @@
 import numpy as np
 import numpy.typing as npt
 
-from .models import ReceiverHits, PositionEstimate
+import common.constants as const
 from common.position import Position
 
-import common.constants as const
+from .models import ReceiverHits, PositionEstimate
 
 
 Matrix = npt.NDArray[np.float64]
@@ -51,27 +51,27 @@ class TdoaSolver:
         ref = hits[0]
         r1 = ref.pos.distance_to(pos)
 
-
         rows = []
 
         for hit in hits[1:]:
             r = hit.pos.distance_to(pos)
 
-            rows.append([
-                (pos.x - hit.pos.x) / r - (pos.x - ref.pos.x) / r1,
-                (pos.y - hit.pos.y) / r - (pos.y - ref.pos.y) / r1,
-            ])
+            rows.append(
+                [
+                    (pos.x - hit.pos.x) / r - (pos.x - ref.pos.x) / r1,
+                    (pos.y - hit.pos.y) / r - (pos.y - ref.pos.y) / r1,
+                ]
+            )
         return np.array(rows, dtype=float)
-    
+
     def _covariance(self, size: int) -> Matrix:
         return np.eye(size) + np.ones((size, size))
 
-
     def _estimate_error(self, hits: ReceiverHits, pos: Position) -> float:
         J = self._jacobian(hits, pos)
-        R = self._covariance(len(hits)-1)
+        R = self._covariance(len(hits) - 1)
         P = np.linalg.inv(J.T @ np.linalg.solve(R, J))
-        
+
         var = np.linalg.eigvalsh(P)[-1]
-        distance_std = const.propagation_speed * const.arrival_time_std 
+        distance_std = const.propagation_speed * const.arrival_time_std
         return distance_std * np.sqrt(var)

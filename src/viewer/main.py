@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import uvicorn
 from pymongo import MongoClient
 
 from repository.tracks import MongoTrackRepo
+from repository.config import MongoConfig
 
 from .providers import set_track_repo
 from .app import app
@@ -14,16 +15,14 @@ from .app import app
 
 @dataclass(slots=True)
 class Config:
-    mongo_db: str = "localization-lab"
-    mongo_uri: str = "mongodb://localhost:27017"
+    mongo: MongoConfig = field(default_factory=MongoConfig)
     listen_port: int = 8080
 
     @staticmethod
     def from_env() -> Config:
         cfg = Config()
 
-        cfg.mongo_db = os.getenv("MONGO_DB", cfg.mongo_db)
-        cfg.mongo_uri = os.getenv("MONGO_URI", cfg.mongo_uri)
+        cfg.mongo = MongoConfig.from_env()
         cfg.listen_port = int(os.getenv("LISTEN_PORT", str(cfg.listen_port)))
 
         return cfg
@@ -32,8 +31,8 @@ class Config:
 def main():
     cfg = Config.from_env()
 
-    mongo_client = MongoClient(cfg.mongo_uri)
-    mongo_db = mongo_client[cfg.mongo_db]
+    mongo_client = MongoClient(cfg.mongo.uri)
+    mongo_db = mongo_client[cfg.mongo.db]
 
     repo = MongoTrackRepo(mongo_db)
     repo.setup()

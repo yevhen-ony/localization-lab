@@ -1,22 +1,24 @@
-from common.position import Position
+from common.position import Position, Velocity
 
 
 class Navigation:
 
     def __init__(self,
         position: Position,
-        step: Position,
+        velocity: Velocity,
         noise: float = 0.0, 
     ) -> None:
         self.position = position
-        self.step = step
+        self.velocity = velocity 
         self.noise = noise
 
-    def forward(self) -> Position:
-        self.step += Position.random(self.noise)
-        self.position += self.step
+    def advance(self, dt: float) -> Position:
+        velocity = self.velocity + Velocity.random(self.noise)
+        self.position += velocity.step(dt)
         return self.position
 
-    def backward(self) -> Position:
-        self.position -= self.step
-        return self.position
+    def turn(self, dt: float) -> Position:
+        self.velocity *= -1
+        return self.advance(dt)
+
+

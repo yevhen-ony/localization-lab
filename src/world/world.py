@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from common.ids import ReceiverId
-from common.heartbeat import Heartbeat
-from common.tick import Tick
-from common.telemetry import Telemetry
 from common.position import Position
-from common.signal import Signal
+from common.entities import (
+    ReceiverId,
+    Heartbeat,
+    Tick,
+    Telemetry,
+    Signal,
+)
 
-from transport.in_memory.channels import SignalChannel
+from transport.protocols import SignalChannel
 
 from .drone import Drone, Emission
 from .medium import Medium
@@ -23,29 +25,30 @@ class World:
     ) -> None:
         self.drones: list[Drone] = []
         self._terrain = terrain
-        self._medium = medium 
+        self._medium = medium
         self._signal_channel = signal_channel
         self._stations: dict[ReceiverId, Heartbeat] = {}
 
     def on_heartbeat(self, heartbeat: Heartbeat) -> None:
+        print(f"world: on heartbeat: station = {heartbeat.station_id}")
         self._stations[heartbeat.station_id] = heartbeat
 
     def on_tick(self, tick: Tick) -> None:
+        print(f"world: on tick: epoch = {tick.epoch}")
         for drone in self.drones:
             drone.on_tick(tick)
 
     def measure(self, position: Position) -> Telemetry:
         return self._terrain.sample(position)
-        
+
     def transmit(self, drone: Drone, emission: Emission) -> int:
         count = 0
         for station in self._stations.values():
-
             propagation = self._medium.propagate(
                 emitter_position=drone.position,
                 receiver_position=station.position,
             )
-            
+
             if propagation is None:
                 continue
             signal = Signal(
@@ -60,7 +63,7 @@ class World:
             count += 1
 
         return count
-    
+
     def add_drone(self, drone: Drone):
         drone.bind_environment(self)
         self.drones.append(drone)
