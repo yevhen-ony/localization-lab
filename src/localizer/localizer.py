@@ -39,7 +39,7 @@ class Localizer:
 
     def _emit_sample(self, ping: EmitterPing, pe: PositionEstimate) -> None:
         self._sample_channel.publish(
-            sample=LocalizedSample(
+            LocalizedSample(
                 epoch=ping.epoch,
                 emitter_id=ping.id,
                 telemetry=ping.telemetry,

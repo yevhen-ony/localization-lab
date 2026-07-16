@@ -17,16 +17,17 @@ def main() -> None:
     try:
         codec = JsonCodec()
 
-        signal_channel = chan.SignalChannel(cid, mqtt_client, codec)
-        tick_channel = chan.TickChannel(cid, mqtt_client, codec)
-        heartbeat_channel = chan.HeartbeatChannel(cid, mqtt_client, codec)
+        signal_chan = chan.SignalChannel(cid, mqtt_client, codec)
+        tick_chan = chan.TickChannel(cid, mqtt_client, codec)
+        heartbeat_chan = chan.HeartbeatChannel(cid, mqtt_client, codec)
+        drone_truth_chan = chan.DroneTruthChannel(cid, mqtt_client, codec)
 
         terrain = Terrain()
         medium = Medium()
         world = World(
             medium=medium,
             terrain=terrain,
-            signal_channel=signal_channel,
+            signal_channel=signal_chan,
         )
 
         drones = [
@@ -35,9 +36,10 @@ def main() -> None:
 
         for drone in drones:
             world.add_drone(drone)
+            drone.set_truth_channel(drone_truth_chan)
 
-        tick_channel.subscribe(world.on_tick)
-        heartbeat_channel.subscribe(world.on_heartbeat)
+        tick_chan.subscribe(world.on_tick)
+        heartbeat_chan.subscribe(world.on_heartbeat)
 
         mqtt_client.loop_forever()
 

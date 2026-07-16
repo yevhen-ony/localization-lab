@@ -6,9 +6,10 @@ import common.entities as e
 
 
 TICK_TOPIC = "lab/tick"
+TRACK_TOPIC = "lab/track"
 SIGNAL_TOPIC = "lab/signal"
 HEARTBEAT_TOPIC = "lab/heartbeat"
-TRACK_SAMPLE_TOPIC = "lab/track"
+DRONE_TRUTH_TOPIC = "lab/drone_truth"
 STATION_REPORT_TOPIC = "lab/station_report"
 LOCALIZED_SAMPLE_TOPIC = "lab/localized_sample"
 
@@ -149,11 +150,33 @@ class TrackSampleChannel:
             sample = e.TrackSample.from_dict(d)
             handler(sample)
 
-        topic = TRACK_SAMPLE_TOPIC + "/#"
+        topic = TRACK_TOPIC + "/#"
         self._client.subscribe(topic)
         self._client.message_callback_add(topic, callback)
 
     def publish(self, sample: e.TrackSample) -> None:
         raw = self._codec.marshal(asdict(sample))
-        topic = TRACK_SAMPLE_TOPIC + f"/{self._id}"
+        topic = TRACK_TOPIC + f"/{self._id}"
+        self._client.publish(topic, raw)
+
+
+class DroneTruthChannel:
+    def __init__(self, client_id: str, client: mqtt.Client, codec: Codec):
+        self._id = client_id
+        self._client = client
+        self._codec = codec
+
+    def subscribe(self, handler: p.DroneTruthSampleHandler):
+        def callback(client, userdata, message: mqtt.MQTTMessage) -> None:
+            d = self._codec.unmarshal(message.payload)
+            sample = e.DroneTruthSample.from_dict(d)
+            handler(sample)
+
+        topic = DRONE_TRUTH_TOPIC + "/#"
+        self._client.subscribe(topic)
+        self._client.message_callback_add(topic, callback)
+
+    def publish(self, sample: e.DroneTruthSample) -> None:
+        raw = self._codec.marshal(asdict(sample))
+        topic = DRONE_TRUTH_TOPIC + f"/{self._id}"
         self._client.publish(topic, raw)

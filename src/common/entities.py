@@ -126,9 +126,8 @@ class TrackSample:
     velocity_std: float
     telemetry: Telemetry
 
-
     @staticmethod
-    def from_dict(d: dict) -> "TrackSample":
+    def from_dict(d: dict) -> TrackSample:
         return TrackSample(
             epoch=d["epoch"],
             emitter_id=EmitterId(d["emitter_id"]),
@@ -138,3 +137,21 @@ class TrackSample:
             velocity_std=d["velocity_std"],
             telemetry=Telemetry(**d["telemetry"]),
           )
+
+@dataclass(frozen=True, slots=True)
+class DroneTruthSample:
+    epoch: int
+    emitter_id: EmitterId
+    position: Position
+    velocity: Velocity
+
+    @staticmethod
+    def from_dict(d: dict) -> DroneTruthSample:
+        return DroneTruthSample(
+            epoch=d["epoch"],
+            emitter_id=EmitterId(d["emitter_id"]),
+            position=Position(**d["position"]),
+            velocity=Velocity(**d["velocity"]),
+        )
+
+

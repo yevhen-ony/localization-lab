@@ -4,9 +4,10 @@ import transport.mqtt.channels as chan
 from transport.mqtt.client import init_client
 from transport.mqtt.codec import JsonCodec
 from repository.tracks import MongoTrackRepo
+from repository.drone_truth import MongoDroneTruthRepo
 from repository.config import MongoConfig
 
-from .ingest import TrackIngestor
+from .ingest import TrackIngestor, DroneTruthIngestor
 
 
 def main() -> None:
@@ -18,11 +19,21 @@ def main() -> None:
         mongo_client = MongoClient(mongo_config.uri)
         mongo_db = mongo_client[mongo_config.db]
 
-        repo = MongoTrackRepo(mongo_db)
-        ingestor = TrackIngestor(repo)
+        # Drone track
 
-        sample_chan = chan.TrackSampleChannel(cid, mqtt_client, codec)
-        sample_chan.subscribe(ingestor.on_track_sample)
+        track_repo = MongoTrackRepo(mongo_db)
+        track_ingestor = TrackIngestor(track_repo)
+
+        track_chan = chan.TrackSampleChannel(cid, mqtt_client, codec)
+        track_chan.subscribe(track_ingestor.on_track_sample)
+
+        # Drone truth
+
+        truth_repo = MongoDroneTruthRepo(mongo_db)
+        truth_ingestor = DroneTruthIngestor(truth_repo)
+
+        truth_chan = chan.DroneTruthChannel(cid, mqtt_client, codec)
+        truth_chan = truth_chan.subscribe(truth_ingestor.on_drone_truth_sample) 
 
         mqtt_client.loop_forever()
 

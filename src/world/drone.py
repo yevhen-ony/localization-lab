@@ -4,13 +4,11 @@ import random
 from typing import Protocol
 from dataclasses import dataclass
 
+from transport.protocols import DroneTruthChannel
+
 from common.position import Position, Velocity
 import common.constants as const
-from common.entities import (
-        EmitterId,
-        Telemetry,
-        Tick,
-)
+import common.entities as e
 
 from .navigation import Navigation
 
@@ -18,18 +16,18 @@ from .navigation import Navigation
 @dataclass(frozen=True, slots=True)
 class Emission:
     slot: int
-    telemetry: Telemetry
+    telemetry: e.Telemetry
 
 
 class DroneEnvironment(Protocol):
-    def measure(self, position: Position) -> Telemetry: ...
+    def measure(self, position: Position) -> e.Telemetry: ...
     def transmit(self, drone: Drone, emission: Emission) -> int: ...
 
 
 class Drone:
     def __init__(
         self,
-        drone_id: EmitterId,
+        drone_id: e.EmitterId,
         position: Position,
         velocity: Velocity,
         noise: float = 0,
@@ -37,6 +35,7 @@ class Drone:
         self._id = drone_id
         self._navi = Navigation(position, velocity, noise)
         self._env: DroneEnvironment | None = None
+        self._chan: DroneTruthChannel | None = None
 
     @property
     def env(self) -> DroneEnvironment:
@@ -44,16 +43,23 @@ class Drone:
         return self._env
 
     @property
-    def id(self) -> EmitterId:
+    def id(self) -> e.EmitterId:
         return self._id
 
     @property
     def position(self) -> Position:
         return self._navi.position
 
-    def on_tick(self, tick: Tick) -> None:
+    @property
+    def velocity(self) -> Velocity:
+        return self._navi.velocity
+
+    def on_tick(self, tick: e.Tick) -> None:
         dt = const.epoch_duration_s
         self._navi.advance(dt)
+
+        if self._chan:
+            self._chan.publish(self._truth(tick.epoch))
 
         telemetry = self.env.measure(self.position)
         emission = Emission(
@@ -64,3 +70,16 @@ class Drone:
 
     def bind_environment(self, env: DroneEnvironment) -> None:
         self._env = env
+
+    def set_truth_channel(self, channel: DroneTruthChannel) -> None:
+        self._chan = channel
+
+    def _truth(self, epoch: int) -> e.DroneTruthSample:
+        return e.DroneTruthSample(
+            epoch=epoch,
+            emitter_id=self.id,
+            position=self.position,
+            velocity=self._navi.velocity,
+        )
+
+

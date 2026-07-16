@@ -1,53 +1,35 @@
-from typing import Protocol, Callable
+from typing import Protocol, Callable, TypeAlias
 
-from common.entities import (
-    StationReport,
-    Heartbeat,
-    Signal,
-    Tick,
-    LocalizedSample,
-    TrackSample,
-)
-
-StationReportHandler = Callable[[StationReport], None]
-
-class StationReportChannel(Protocol):
-    def subscribe(self, handler: StationReportHandler) -> None: ...
-    def publish(self, report: StationReport) -> None: ...
+import common.entities as e
 
 
-HeartbeatHandler = Callable[[Heartbeat], None]
-
-class HeartbeatChannel(Protocol):
-    def subscribe(self, handler: HeartbeatHandler) -> None: ...
-    def publish(self, hb: Heartbeat) -> None: ...
+class Channel[T](Protocol):
+    def subscribe(self, handler: Callable[[T], None], /) -> None: ...
+    def publish(self, value: T, /) -> None: ...
 
 
-SignalHandler = Callable[[Signal], None]
+StationReportHandler: TypeAlias = Callable[[e.StationReport], None]
+StationReportChannel: TypeAlias = Channel[e.StationReport]
 
 
-class SignalChannel(Protocol):
-    def subscribe(self, handler: SignalHandler) -> None: ...
-    def publish(self, signal: Signal) -> None: ...
+HeartbeatHandler: TypeAlias = Callable[[e.Heartbeat], None]
+HeartbeatChannel: TypeAlias = Channel[e.Heartbeat]
 
 
-TickHandler = Callable[[Tick], None]
-
-class TickChannel(Protocol):
-    def subscribe(self, handler: TickHandler) -> None: ...
-    def publish(self, tick: Tick) -> None: ...
+SignalHandler: TypeAlias = Callable[[e.Signal], None]
+SignalChannel: TypeAlias = Channel[e.Signal]
 
 
-LocalizedSampleHandler = Callable[[LocalizedSample], None]
+TickHandler: TypeAlias = Callable[[e.Tick], None]
+TickChannel: TypeAlias = Channel[e.Tick]
 
-class LocalizedSampleChannel(Protocol):
-    def subscribe(self, handler: LocalizedSampleHandler) -> None: ...
-    def publish(self, sample: LocalizedSample) -> None: ...
-
-
-TrackSampleHandler = Callable[[TrackSample], None]
+LocalizedSampleHandler: TypeAlias = Callable[[e.LocalizedSample], None]
+LocalizedSampleChannel: TypeAlias = Channel[e.LocalizedSample]
 
 
-class TrackChannel(Protocol):
-    def subscribe(self, handler: TrackSampleHandler) -> None: ...
-    def publish(self, sample: TrackSample) -> None: ...
+TrackSampleHandler: TypeAlias = Callable[[e.TrackSample], None]
+TrackChannel: TypeAlias = Channel[e.TrackSample]
+
+
+DroneTruthSampleHandler: TypeAlias = Callable[[e.DroneTruthSample], None]
+DroneTruthChannel: TypeAlias = Channel[e.DroneTruthSample]

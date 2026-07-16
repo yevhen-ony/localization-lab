@@ -77,3 +77,16 @@ class TrackChannel:
     def publish(self, sample: e.TrackSample) -> None:
         for handler in self._handlers:
             handler(sample)
+
+
+class DroneTruthChannel:
+    def __init__(self) -> None:
+        self._handlers: list[p.DroneTruthSampleHandler] = []
+
+    def subscribe(self, handler: p.DroneTruthSampleHandler) -> None:
+        self._handlers.append(handler)
+
+    def publish(self, sample: e.DroneTruthSample) -> None:
+        for handler in self._handlers:
+            handler(sample)
+
