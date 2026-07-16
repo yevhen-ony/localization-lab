@@ -45,30 +45,37 @@ Localization Lab is a modular simulation framework for experimenting with radio-
      +--------+--------+
               |
               v
-        +-----+------+
-        |  MongoDB   |
-        +-----+------+
+       +------+------+
+       |   MongoDB   |
+       +------+------+
               |
               v
-        +-----+------+
-        |  Viewer    |
-        +------------+
+       +------+------+
+       |   Viewer    |
+       +-------------+
 ```
 
 #### Main data flows:
 
-Clock -> MQTT -> World
-Clock -> MQTT -> Stations
+```text
+Clock --|MQTT|-> World
+Clock --|MQTT|-> Stations
+```
+```test
+World --|MQTT|-> Stations          : Signal
+World --|MQTT|-> Ingestor          : DroneTruthSample
+```
 
-World -> MQTT -> Stations          : Signal
-World -> MQTT -> Ingestor          : DroneTruthSample
+```text
+Stations  --|MQTT|-> Localizer     : StationReport
+Localizer --|MQTT|-> Tracker       : LocalizedSample
+Tracker   --|MQTT|-> Ingestor      : TrackSample
+```
 
-Stations -> MQTT -> Localizer      : StationReport
-Localizer -> MQTT -> Tracker       : LocalizedSample
-Tracker -> MQTT -> Ingestor        : TrackSample
-
+```text
 Ingestor -> MongoDB                : only writer
-Viewer -> MongoDB                  : reader
+Viewer   -> MongoDB                : reader
+```
 
 
 ## Get Started
