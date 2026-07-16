@@ -10,43 +10,52 @@ Localization Lab is a modular simulation framework for experimenting with radio-
 * Support interchangeable transports (in-memory, MQTT, ...).
 
 
+
 ## Architecture
 
-  ```text
-  +-------+        tick        +-------------+
-  | Clock | -----------------> | MQTT Broker |
-  +-------+                    +------+------+
-                                      |
-            +-------------------------+-------------------------+
-            |                         |                         |
-            v                         v                         v
-  +---------+--------+       +--------+--------+       +--------+--------+
-  |      World       |       |    Stations     |       |    Ingestor     |
-  |------------------|       |-----------------|       |-----------------|
-  | Drones           |       | receive signals |       | writes MongoDB  |
-  | Terrain          |       | emit reports    |       |                 |
-  | Radio medium     |       | emit heartbeat  |       |                 |
-  +---------+--------+       +--------+--------+       +--------+--------+
-            |                         |                         |
-            | signal                  | station report          |
-            | drone truth             |                         |
-            v                         v                         v
-  +---------+-------------------------+-------------------------+--------+
-  |                           MQTT Broker                                |
-  +---------+-------------------------+-------------------------+--------+
-                                      |
-                                      v
-                               +------+------+
-                               |  MongoDB    |
-                               +------+------+
-                                      |
-                                      v
-                               +------+------+
-                               |  Viewer     |
-                               +-------------+
+```text
+ +-------+        Tick       +-------------+
+ | Clock | ----------------> | MQTT Broker |
+ +-------+                   +------+------+
+                                    |
+              +---------------------+---------------------+
+              |                     |                     |
+              v                     v                     v
+ +------------+-----+     +---------+------+     +--------+--------+
+ |      World       |     |    Stations    |     |   Localizer     |
+ |------------------|     |----------------|     |-----------------|
+ | Drones           |     | receive Signal |     | consumes reports|
+ | Terrain          |     | emit reports   |     | emits locations |
+ | Radio medium     |     | emit heartbeat |     +--------+--------+
+ +------------+-----+     +---------+------+              |
+              |                     |                     |
+              | Signal              | StationReport       | LocalizedSample
+              | DroneTruthSample    |                     |
+              v                     v                     v
+         +----+---------------------+---------------------+----+
+         |                    MQTT Broker                      |
+         +----+---------------------+---------------------+----+
+              |                                           |
+              v                                           v
+     +--------+--------+                         +--------+--------+
+     |    Ingestor     | <---- TrackSample ----- |     Tracker     |
+     |-----------------|                         |-----------------|
+     | writes tracks   |                         | emits tracks    |
+     | writes truth    |                         +-----------------+
+     +--------+--------+
+              |
+              v
+        +-----+------+
+        |  MongoDB   |
+        +-----+------+
+              |
+              v
+        +-----+------+
+        |  Viewer    |
+        +------------+
 ```
 
-Main data flows:
+#### Main data flows:
 
 Clock -> MQTT -> World
 Clock -> MQTT -> Stations
@@ -58,8 +67,8 @@ Stations -> MQTT -> Localizer      : StationReport
 Localizer -> MQTT -> Tracker       : LocalizedSample
 Tracker -> MQTT -> Ingestor        : TrackSample
 
-Ingestor -> MongoDB
-Viewer -> MongoDB
+Ingestor -> MongoDB                : only writer
+Viewer -> MongoDB                  : reader
 
 
 ## Get Started
