@@ -1,10 +1,9 @@
 from common.entities import TrackSample, DroneTruthSample
-from repository.tracks import MongoTrackRepo
-from repository.drone_truth import MongoDroneTruthRepo
+from repository.repos import TrackRepo, DroneTruthRepo
 
 
 class TrackIngestor:
-    def __init__(self, repo: MongoTrackRepo):
+    def __init__(self, repo: TrackRepo):
         self._repo = repo
 
     def ingest(self, sample: TrackSample) -> None:
@@ -18,7 +17,7 @@ class TrackIngestor:
 
 
 class DroneTruthIngestor:
-    def __init__(self, repo: MongoDroneTruthRepo):
+    def __init__(self, repo: DroneTruthRepo):
         self._repo = repo
 
     def ingest(self, sample: DroneTruthSample):

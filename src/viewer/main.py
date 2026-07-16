@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 import uvicorn
 from pymongo import MongoClient
 
-from repository.tracks import MongoTrackRepo
+from repository.repos import TrackRepo
 from repository.config import MongoConfig
 
 from .providers import set_track_repo
@@ -34,7 +34,7 @@ def main():
     mongo_client = MongoClient(cfg.mongo.uri)
     mongo_db = mongo_client[cfg.mongo.db]
 
-    repo = MongoTrackRepo(mongo_db)
+    repo = TrackRepo(mongo_db)
     repo.setup()
 
     set_track_repo(repo)

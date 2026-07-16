@@ -1,4 +1,4 @@
-from repository.tracks import TrackRepo
+from repository.repos import TrackRepo
 
 _track_repo: TrackRepo | None = None
 

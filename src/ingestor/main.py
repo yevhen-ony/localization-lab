@@ -3,8 +3,7 @@ from pymongo import MongoClient
 import transport.mqtt.channels as chan
 from transport.mqtt.client import init_client
 from transport.mqtt.codec import JsonCodec
-from repository.tracks import MongoTrackRepo
-from repository.drone_truth import MongoDroneTruthRepo
+from repository.repos import TrackRepo, DroneTruthRepo
 from repository.config import MongoConfig
 
 from .ingest import TrackIngestor, DroneTruthIngestor
@@ -21,7 +20,7 @@ def main() -> None:
 
         # Drone track
 
-        track_repo = MongoTrackRepo(mongo_db)
+        track_repo = TrackRepo(mongo_db)
         track_ingestor = TrackIngestor(track_repo)
 
         track_chan = chan.TrackSampleChannel(cid, mqtt_client, codec)
@@ -29,7 +28,7 @@ def main() -> None:
 
         # Drone truth
 
-        truth_repo = MongoDroneTruthRepo(mongo_db)
+        truth_repo = DroneTruthRepo(mongo_db)
         truth_ingestor = DroneTruthIngestor(truth_repo)
 
         truth_chan = chan.DroneTruthChannel(cid, mqtt_client, codec)

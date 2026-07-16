@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from common.entities import EmitterId
-from repository.tracks import TrackRepo
+from repository.repos import TrackRepo
 
 from .handlers import stream_track
 from .providers import get_track_repo

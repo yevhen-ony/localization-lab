@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import asdict
 from fastapi import WebSocket, WebSocketDisconnect
-from repository.tracks import TrackRepo
+from repository.repos import TrackRepo
 from collections.abc import Awaitable, Callable
 from functools import wraps
 from common.entities import EmitterId
@@ -35,7 +35,7 @@ async def stream_track(ws: WebSocket, repo: TrackRepo, emitter_id: EmitterId) ->
 
 
         print(f"stream {emitter_id=} {last_epoch=}")
-        samples = repo.get_track(emitter_id, last_epoch)
+        samples = repo.get_samples(emitter_id, last_epoch)
         print(f"samples={len(samples)}")
 
         if not samples: 

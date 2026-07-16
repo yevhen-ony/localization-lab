@@ -8,7 +8,7 @@ from common.entities import EmitterId, ReceiverId
 from common.position import Position, Velocity
 from ingestor.ingest import TrackIngestor
 from localizer.localizer import Localizer
-from repository.tracks import MongoTrackRepo
+from repository.repos import TrackRepo
 from station.station import Station
 from tracker.tracker import Tracker
 from transport.inmem.channels import (
@@ -101,7 +101,7 @@ def main():
     mongo_client = MongoClient("mongodb://localhost:27017")
     mongo_db = mongo_client["localization-lab"]
 
-    repo = MongoTrackRepo(mongo_db)
+    repo = TrackRepo(mongo_db)
     ingestor = TrackIngestor(repo)
 
     tick_channel.subscribe(world.on_tick)
