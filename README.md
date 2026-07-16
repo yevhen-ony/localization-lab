@@ -9,22 +9,93 @@ Localization Lab is a modular simulation framework for experimenting with radio-
 * Keep physics, communication, and localization independent.
 * Support interchangeable transports (in-memory, MQTT, ...).
 
+
 ## Architecture
 
-```text
-Clock
-   │
-   ▼
-World
-   ├── Terrain
-   ├── Drones
-   └── Medium
-   │
-   ▼
-Stations
-   │
-   ▼
-Ground
+  ```text
+  +-------+        tick        +-------------+
+  | Clock | -----------------> | MQTT Broker |
+  +-------+                    +------+------+
+                                      |
+            +-------------------------+-------------------------+
+            |                         |                         |
+            v                         v                         v
+  +---------+--------+       +--------+--------+       +--------+--------+
+  |      World       |       |    Stations     |       |    Ingestor     |
+  |------------------|       |-----------------|       |-----------------|
+  | Drones           |       | receive signals |       | writes MongoDB  |
+  | Terrain          |       | emit reports    |       |                 |
+  | Radio medium     |       | emit heartbeat  |       |                 |
+  +---------+--------+       +--------+--------+       +--------+--------+
+            |                         |                         |
+            | signal                  | station report          |
+            | drone truth             |                         |
+            v                         v                         v
+  +---------+-------------------------+-------------------------+--------+
+  |                           MQTT Broker                                |
+  +---------+-------------------------+-------------------------+--------+
+                                      |
+                                      v
+                               +------+------+
+                               |  MongoDB    |
+                               +------+------+
+                                      |
+                                      v
+                               +------+------+
+                               |  Viewer     |
+                               +-------------+
+```
+
+Main data flows:
+
+Clock -> MQTT -> World
+Clock -> MQTT -> Stations
+
+World -> MQTT -> Stations          : Signal
+World -> MQTT -> Ingestor          : DroneTruthSample
+
+Stations -> MQTT -> Localizer      : StationReport
+Localizer -> MQTT -> Tracker       : LocalizedSample
+Tracker -> MQTT -> Ingestor        : TrackSample
+
+Ingestor -> MongoDB
+Viewer -> MongoDB
+
+
+## Get Started
+
+The lab runs as a set of Docker Compose services: MQTT broker, MongoDB, viewer,
+clock, world simulator, stations, localizer, tracker, and ingestor.
+
+Build the application image:
+
+```sh
+make build
+```
+
+Start the lab:
+
+```sh
+make up
+```
+
+The main endpoints are:
+
+- Viewer: http://localhost:8080
+- Mongo Express: http://localhost:8081
+- MQTT broker: localhost:1883
+- MongoDB: localhost:27017
+
+To watch service logs:
+
+```sh
+docker compose logs -f
+```
+
+To stop the lab and remove MongoDB data:
+
+```sh
+make down
 ```
 
 ## Status
