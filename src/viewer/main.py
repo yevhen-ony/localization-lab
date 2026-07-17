@@ -6,10 +6,10 @@ from dataclasses import dataclass, field
 import uvicorn
 from pymongo import MongoClient
 
-from repository.repos import TrackRepo
+from repository.repos import TrackRepo, DroneTruthRepo, LocalizedRepo
 from repository.config import MongoConfig
 
-from .providers import set_track_repo
+from .providers import set_track_repo, set_truth_repo, set_local_repo
 from .app import app
 
 
@@ -34,16 +34,24 @@ def main():
     mongo_client = MongoClient(cfg.mongo.uri)
     mongo_db = mongo_client[cfg.mongo.db]
 
-    repo = TrackRepo(mongo_db)
-    repo.setup()
+    track_repo = TrackRepo(mongo_db)
+    track_repo.setup()
+    set_track_repo(track_repo)
 
-    set_track_repo(repo)
+    truth_repo = DroneTruthRepo(mongo_db)
+    truth_repo.setup()
+    set_truth_repo(truth_repo)
+
+    local_repo = LocalizedRepo(mongo_db)
+    local_repo.setup()
+    set_local_repo(local_repo)
 
     uvicorn.run(
         app=app,
         host="0.0.0.0",
         port=cfg.listen_port,
     )
+
 
 if __name__ == "__main__":
     main()

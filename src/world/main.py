@@ -31,7 +31,7 @@ def main() -> None:
         )
 
         drones = [
-            Drone(EmitterId("drone-1"), Position(-20, -20), Velocity(1, 1), 0.1),
+            Drone(EmitterId("drone-1"), Position(-20, -20), Velocity(1, 1), 0.5),
         ]
 
         for drone in drones:

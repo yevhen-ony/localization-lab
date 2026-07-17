@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import asdict
 from fastapi import WebSocket, WebSocketDisconnect
-from repository.repos import TrackRepo
+from repository.repos import TrackRepo, DroneTruthRepo, LocalizedRepo
 from collections.abc import Awaitable, Callable
 from functools import wraps
 from common.entities import EmitterId
@@ -31,16 +31,50 @@ async def stream_track(ws: WebSocket, repo: TrackRepo, emitter_id: EmitterId) ->
     last_epoch = repo.last_epoch()
 
     while True:
-        await asyncio.sleep(0.5)
-
+        await asyncio.sleep(1.0)
 
         print(f"stream {emitter_id=} {last_epoch=}")
         samples = repo.get_samples(emitter_id, last_epoch)
         print(f"samples={len(samples)}")
 
-        if not samples: 
+        if not samples:
             continue
 
         last_epoch = samples[-1].epoch
         await ws.send_json([asdict(s) for s in samples])
 
+
+@websocket_endpoint
+async def stream_truth(
+    ws: WebSocket, repo: DroneTruthRepo, emitter_id: EmitterId
+) -> None:
+    last_epoch = repo.last_epoch()
+
+    while True:
+        await asyncio.sleep(1.0)
+
+        samples = repo.get_samples(emitter_id, last_epoch)
+
+        if not samples:
+            continue
+
+        last_epoch = samples[-1].epoch
+        await ws.send_json([asdict(s) for s in samples])
+
+
+@websocket_endpoint
+async def stream_local(
+    ws: WebSocket, repo: LocalizedRepo, emitter_id: EmitterId
+) -> None:
+    last_epoch = repo.last_epoch()
+
+    while True:
+        await asyncio.sleep(1.0)
+
+        samples = repo.get_samples(emitter_id, last_epoch)
+
+        if not samples:
+            continue
+
+        last_epoch = samples[-1].epoch
+        await ws.send_json([asdict(s) for s in samples])

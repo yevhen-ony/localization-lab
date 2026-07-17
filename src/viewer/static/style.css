@@ -32,3 +32,10 @@ td:nth-child(2) {
 th {
   background: #eee;
 }
+
+
+#drone-map {
+  width: 100%;
+  height: 560px;
+  background: white;
+}

@@ -5,6 +5,6 @@ propagation_speed: float = 0.3 # m/ns
 
 arrival_time_std: float = 0.3 # ns 
 
-velocity_kick_density: float = 10.0 # (m/s)^2 / s
+velocity_kick_density: float = 0.5 # (m/s)^2 / s
 
 min_location_std: float = 0.01 # m

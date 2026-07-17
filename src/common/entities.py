@@ -136,7 +136,8 @@ class TrackSample:
             velocity=Velocity(**d["velocity"]),
             velocity_std=d["velocity_std"],
             telemetry=Telemetry(**d["telemetry"]),
-          )
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class DroneTruthSample:
@@ -153,5 +154,3 @@ class DroneTruthSample:
             position=Position(**d["position"]),
             velocity=Velocity(**d["velocity"]),
         )
-
-

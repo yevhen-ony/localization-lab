@@ -12,7 +12,7 @@ class Propagation:
 @dataclass(frozen=True)
 class Medium:
     action_range: float = 200.0
-    noise_level: float = 0.3
+    noise_level: float = 0.3 # m
     propagation_speed: float = 0.3 # m/ns 
 
     def propagate(
@@ -20,7 +20,9 @@ class Medium:
         emitter_position: Position,
         receiver_position: Position,
     ) -> Propagation | None:
-        dist = receiver_position.distance_to(emitter_position)
+        
+        pos = emitter_position + Position.random(self.noise_level)
+        dist = receiver_position.distance_to(pos)
         if dist > self.action_range:
             return None
 

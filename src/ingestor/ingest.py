@@ -1,5 +1,5 @@
-from common.entities import TrackSample, DroneTruthSample
-from repository.repos import TrackRepo, DroneTruthRepo
+from common.entities import TrackSample, DroneTruthSample, LocalizedSample
+from repository.repos import TrackRepo, DroneTruthRepo, LocalizedRepo
 
 
 class TrackIngestor:
@@ -27,4 +27,15 @@ class DroneTruthIngestor:
         print(
             f"ingestor: drone truth sampe: epoch {sample.epoch} id = {sample.emitter_id}"
         )
+        self.ingest(sample)
+
+
+class LocalizedIngestor:
+    def __init__(self, repo: LocalizedRepo):
+        self._repo = repo
+
+    def ingest(self, sample: LocalizedSample):
+        self._repo.put(sample)
+
+    def on_localized_sample(self, sample: LocalizedSample) -> None:
         self.ingest(sample)
